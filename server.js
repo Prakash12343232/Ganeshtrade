@@ -28,14 +28,21 @@ let db = {
 
 let useMongoDB = false;
 
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => {
-        console.log('✅ Connected to MongoDB');
-        useMongoDB = true;
-    })
-    .catch(err => {
-        console.warn('⚠️ MongoDB not detected. Switching to MOCK MODE.');
-    });
+const MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
+
+if (MONGO_URI) {
+    mongoose.connect(MONGO_URI)
+        .then(() => {
+            console.log('✅ Connected to MongoDB');
+            useMongoDB = true;
+        })
+        .catch(err => {
+            console.error('❌ MongoDB Connection Error:', err.message);
+            console.warn('⚠️ Switching to MOCK MODE.');
+        });
+} else {
+    console.warn('⚠️ MONGO_URI not found in environment variables. Running in MOCK MODE.');
+}
 
 // --- MIDDLEWARES ---
 const authenticate = (req, res, next) => {
@@ -54,6 +61,10 @@ const adminOnly = (req, res, next) => {
 };
 
 // --- ROUTES ---
+app.get('/', (req, res) => {
+    res.send('🛒 Grocery Shop Backend is Running...');
+});
+
 
 app.post('/api/send-otp', (req, res) => {
     const { mobileNumber } = req.body;
